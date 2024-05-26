@@ -1,0 +1,52 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider                    = "prisma-client-py"
+  interface                   = "asyncio"
+  recursive_type_depth        = 5
+  previewFeatures             = ["postgresqlExtensions"]
+  enable_experimental_decimal = true
+}
+
+model User {
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @unique
+  role                 Role
+  HelloWorldRequestLog HelloWorldRequestLog[]
+  AccessLog            AccessLog[]
+}
+
+model HelloWorldRequestLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  timestamp DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model AccessLog {
+  id         Int      @id @default(autoincrement())
+  requestId  Int
+  userId     Int?
+  method     String
+  route      String
+  statusCode Int
+  timestamp  DateTime @default(now())
+  userAgent  String?
+  ipAddress  String?
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  Admin
+  User
+}
